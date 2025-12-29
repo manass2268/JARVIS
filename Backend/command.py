@@ -1,39 +1,38 @@
 import pyttsx3
 import speech_recognition as sr
 import eel
-
+import time
 
 def speak(text):
     engine = pyttsx3.init('sapi5')
     voices = engine.getProperty('voices')
     engine.setProperty('voice', voices[0].id)
+    engine.setProperty('rate', 174)
     eel.DisplayMessage(text)
     engine.say(text)
     engine.runAndWait()
-    engine.setProperty('rate', 174)
-      # Set the speech rate
-#speak("Hello, I am Jarvis. How can i Help you")
-
 
 def takecommand():
-    r= sr.Recognizer()
+    r = sr.Recognizer()
     with sr.Microphone() as source:
         print("I'm Listening...")
         eel.DisplayMessage("I'm Listening...")
         r.pause_threshold = 1
         r.adjust_for_ambient_noise(source)
-        audio = r.listen(source,10,8)
+        try:
+            audio = r.listen(source, 10, 6)
+        except Exception as e:
+            return "" # Timeout or no audio
+            
     try:
         print("Recognizing...")
-        eel.DisplayMessage("Reconiging...")
+        eel.DisplayMessage("Recognizing...")
         query = r.recognize_google(audio, language='en-in')
         print(f"User said: {query}\n")
         eel.DisplayMessage(query)
-        #time.sleep(3)
-        speak(query)
     except Exception as e:
         print(f"Error: {str(e)}\n")
-        return "I'm sorry, I didn't catch that. Please repeat. Your sentence"
+        return "" # Return empty string on error so loop continues quietly
     
     return query.lower()
 
@@ -70,14 +69,15 @@ def takeAllCommands(message=None):
                         flag = 'video call'
                     whatsApp(Phone, query, flag, name)
             elif "on youtube" in query:
-                from Backend.feature import PlayYoutube
-                PlayYoutube(query)
+                # Error Fixed: PlayYoutube -> PlayYouTube (Capital T match)
+                from Backend.feature import PlayYouTube 
+                PlayYouTube(query)
             else:
                 from Backend.feature import chatBot
                 chatBot(query)
         else:
-            speak("No command was given.")
+            print("No command detected")
     except Exception as e:
         print(f"An error occurred: {e}")
-        speak("Sorry, something went wrong.")
+    
     eel.ShowHood()

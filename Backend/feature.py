@@ -44,15 +44,14 @@ def openCommand(query):
     from Backend.command import speak
     query = query.replace(ASSISTANT_NAME, "")
     query = query.replace("open", "")
-    query = query.strip().lower()
-    app_name = ' '.join(query.split())
-
-    app_name = query
+    query = query.strip()
+    # normalize spaces and lowercase for comparisons
+    app_name = ' '.join(query.split()).lower()
 
     if app_name != "":
         try:
             # System Command (case-insensitive)
-            cur.execute('SELECT File_Path FROM System_Command WHERE LOWER(Name) = ?', (app_name.lower(),))
+            cur.execute('SELECT File_Path FROM System_Command WHERE LOWER(Name) = ?', (app_name,))
             results = cur.fetchall()
 
             if results:
@@ -72,10 +71,10 @@ def openCommand(query):
                 webbrowser.open(results[0][0])
                 return
 
-            # Agar kuch nahi mila to generic open
+            # If nothing matched, try generic open (Windows `start`)
             speak("Trying to open " + app_name)
             try:
-                os.system('start ' + app_name)
+                os.system('start "" ' + app_name)
             except Exception:
                 speak("Not found")
         except Exception as e:
@@ -85,7 +84,7 @@ def openCommand(query):
 def PlayYouTube(query):
     from Backend.command import speak
     search_term = extract_yt_term(query)
-    speak("Playing" + search_term + " on YouTube")
+    speak("Playing " + search_term + " on YouTube")
     kit.playonyt(search_term)
 
 def hotword():
@@ -202,3 +201,13 @@ def makeCall(name, phone_no):
     except Exception as e:
         print("Error in makeCall:", e)
         speak("Sorry, I couldn't make the call.")
+def chatBot(query):
+    from Backend.command import speak
+    print(f"Chatbot received: {query}")
+    speak("I am not connected to the internet for chatting yet, but I heard: " + query)
+    # आप यहाँ अपना hugchat वाला logic लगा सकते हैं।
+    hugchat_client = hugchat.ChatBot()
+    response = hugchat_client.chat(query)
+    print(f"Chatbot response: {response}")
+    speak(response)
+    return response
